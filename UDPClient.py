@@ -20,7 +20,6 @@ while 1:
 
     if found.empty:
         query = create_dns_request(host_name, dns_type, transaction_id)
-        print("Transaction id", transaction_id)
         json_query = query.to_json()
 
         clientSocket.sendto(json_query.encode(), (serverName, serverPort))
@@ -36,12 +35,12 @@ while 1:
             add_to_rr_table(received_answer, client_rr_table)
             value = client_rr_table[
                 (client_rr_table['Name'] == host_name) & (client_rr_table['Type'] == converted_flag)]
-            print(value["Value"].iloc[0])
+            print("The value is: " + value["Value"].iloc[0])
 
     else:
-        print("The value is in the table")
-        print(found["Value"].iloc[0])
+        print("The value is: " + found["Value"].iloc[0])
+        client_rr_table["TTL"] = time.time() + 60
 
-    # print("The name in the column is " + client_rr_table['Name'])
-    # print("The type is " + client_rr_table['Type'])
+    print("Client RR Table")
+    print(client_rr_table)
 clientSocket.close()
