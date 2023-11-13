@@ -1,6 +1,7 @@
 from socket import *
 from methods import *
 
+# TESTING
 data = ['Name', 'Type', 'Value', 'TTL', 'Static']
 client_rr_table = pd.DataFrame(columns=data)
 # print(client_rr_table)
@@ -33,7 +34,8 @@ while 1:
         else:
             transaction_id += 1
             add_to_rr_table(received_answer, client_rr_table)
-            value = client_rr_table[(client_rr_table['Name'] == host_name) & (client_rr_table['Type'] == converted_flag)]
+            value = client_rr_table[
+                (client_rr_table['Name'] == host_name) & (client_rr_table['Type'] == converted_flag)]
             print(value["Value"].iloc[0])
 
     else:
