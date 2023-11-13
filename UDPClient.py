@@ -39,8 +39,11 @@ while 1:
 
     else:
         print("The value is: " + found["Value"].iloc[0])
-        client_rr_table["TTL"] = time.time() + 60
+        client_rr_table["TTL"] = round(time.time() + 60)
 
-    print("Client RR Table")
+    print("\nClient RR Table")
     print(client_rr_table)
+
+    if input("Make another request? (Y/N): ").lower() == "n":
+        break
 clientSocket.close()

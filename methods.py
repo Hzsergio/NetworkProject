@@ -56,7 +56,7 @@ def add_to_rr_table(response, table):
     answer_name = response['name']
     answer_type = response['type_flags']
     answer_value = response['value']
-    answer_ttl = time.time() + 60
+    answer_ttl = round(time.time() + 60)
     new_entry = {"Name": answer_name, "Type": answer_type, "Value": answer_value, 'TTL': answer_ttl, 'Static': 0}
     table.loc[len(table) + 1] = new_entry
 
