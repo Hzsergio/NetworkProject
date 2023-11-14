@@ -6,7 +6,7 @@ serverPort = 15000
 serverSocket = socket(AF_INET, SOCK_DGRAM)
 serverSocket.bind(('', serverPort))
 print('The local server is ready to receive')
-local_transaction_id = 5
+local_transaction_id = 0
 
 data = {'Name': ["www.csusm.edu", "cc.csusm.edu", "cc1.csusm.edu", "cc1.csusm.edu", "my.csusm.edu", "qualcomm.com",
                  "viasat.com"],
@@ -18,7 +18,7 @@ data = {'Name': ["www.csusm.edu", "cc.csusm.edu", "cc1.csusm.edu", "cc1.csusm.ed
 
 local_server_rr_table = pd.DataFrame(data, index=range(1, 8))
 print(local_server_rr_table)
-print("")
+# print("")
 
 
 # Set up connection for the Qualcomm server, send request, receive data
@@ -50,6 +50,7 @@ while 1:
     message, clientAddress = serverSocket.recvfrom(2048)
     modifiedMessage = message.decode()
     received_query = json.loads(modifiedMessage)
+
     if received_query["transaction_id"] == "admin":
         response_to_admin = local_server_rr_table.to_dict()
         response_to_admin = json.dumps(response_to_admin)
@@ -61,6 +62,7 @@ while 1:
     ans_type = int(received_query["type_flags"])
     ans_transaction_id = received_query["transaction_id"]
     converted_flag = type_flag_to_letter(ans_type)
+    print(f"Local DNS Server: The client with IP address {clientAddress} sent an {converted_flag} request for hostname {ans_name}")
 
     # Check if the requested entry is in the rr table
     found = local_server_rr_table[
@@ -68,13 +70,15 @@ while 1:
 
     # If not found, request data from the corresponding server
     if found.empty:
+        print(f"Local DNS Server: An {converted_flag} record for hostname {ans_name} was not found.")
         # Qualcomm request
         if "qualcomm" in ans_name:
+            print(f"Local DNS Server: Sending an {converted_flag} request to the Qualcomm DNS Server for the hostname {ans_name}")
             response = request_qualcomm_server(ans_name, converted_flag, local_transaction_id)
             new_entry = json.loads(response)
 
             if new_entry["transaction_id"] == local_transaction_id:
-                print("IDS MATCH")
+                print(f"Local DNS Server: Obtained the {converted_flag} record for hostname {ans_name} ")
             local_transaction_id += 1
 
             new_entry["transaction_id"] = ans_transaction_id
@@ -84,11 +88,12 @@ while 1:
             print(local_server_rr_table)
         # Viasat Request
         elif "viasat" in ans_name:
+            print(f"Local DNS Server: Sending an {converted_flag} request to the Viasat DNS Server for the hostname {ans_name}")
             response = request_viasat_server(ans_name, converted_flag, local_transaction_id)
             new_entry = json.loads(response)
 
             if new_entry["transaction_id"] == local_transaction_id:
-                print("IDS MATCH")
+                print(f"Local DNS Server: Obtained the {converted_flag} record for hostname {ans_name} ")
             local_transaction_id += 1
 
             new_entry["transaction_id"] = ans_transaction_id
@@ -98,6 +103,9 @@ while 1:
             print(local_server_rr_table)
     # Domain found in local RR table
     else:
+        print(f"Local DNS Server: The {converted_flag} record for the hostname {ans_name} was found in the local RR "
+              f"table.")
+
         return_value = found["Value"].iloc[0]
         response = DNSMessage(transaction_id=ans_transaction_id, qr=1, type_flags=converted_flag,
                               name_length=len(ans_name),

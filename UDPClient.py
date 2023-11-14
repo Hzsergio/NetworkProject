@@ -10,6 +10,7 @@ serverName = 'localhost'
 serverPort = 15000
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 transaction_id = 0
+
 while 1:
 
     host_name = get_valid_input("Enter the host name/domain name: ", VALID_DOMAIN)
@@ -35,15 +36,17 @@ while 1:
             add_to_rr_table(received_answer, client_rr_table)
             value = client_rr_table[
                 (client_rr_table['Name'] == host_name) & (client_rr_table['Type'] == converted_flag)]
-            print("The value is: " + value["Value"].iloc[0])
+            print(f"Client: Record received for hostname {host_name} from the local DNS server.")
+            print(f"Client: The value for hostname {host_name} is " + value["Value"].iloc[0])
 
     else:
-        print("The value is: " + found["Value"].iloc[0])
-        client_rr_table["TTL"] = round(time.time() + 60)
+        print(f"Client: Record for hostname {host_name} located in client RR table.")
+        print(f"Client: The value for hostname {host_name} is " + found["Value"].iloc[0])
+        client_rr_table.loc[client_rr_table["Name"] == host_name, "TTL"] = round(time.time() + 60)
 
     print("\nClient RR Table")
     print(client_rr_table)
 
     if input("Make another request? (Y/N): ").lower() == "n":
+        clientSocket.close()
         break
-clientSocket.close()

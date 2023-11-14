@@ -17,13 +17,12 @@ print(df)
 while 1:
     message, clientAddress = serverSocket.recvfrom(2048)
     modifiedMessage = message.decode()
-    print(modifiedMessage)
-    print("Viasat Here")
     received_query = json.loads(modifiedMessage)
 
     ans_name = received_query["name"]
     ans_type = received_query["type_flags"]
     ans_transaction_id = received_query["transaction_id"]
+    print(f"Viasat Server: The client with IP address {clientAddress} sent an {ans_type} request for hostname {ans_name}")
 
     found = df[(df["Name"] == ans_name) & (df["Type"] == ans_type)]
     if found.empty:
