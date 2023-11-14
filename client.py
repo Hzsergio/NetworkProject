@@ -31,7 +31,7 @@ while 1:
         received_answer = json.loads(received_answer)
 
         if received_answer["name"] == "error":
-            print(f"Client: The local DNS server was unable to answer the query for hostname {host_name}")
+            print(f"\nClient: The local DNS server was unable to answer the query for hostname {host_name}")
             continue
 
         if received_answer["transaction_id"] != transaction_id:
