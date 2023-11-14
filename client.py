@@ -13,7 +13,8 @@ transaction_id = 0
 
 while 1:
 
-    host_name = get_valid_input("Enter the host name/domain name: ", VALID_DOMAIN)
+    # host_name = get_valid_input("Enter the host name/domain name: ", VALID_DOMAIN)
+    host_name = input("Enter the host name/domain name: ")
     dns_type = get_valid_input("Enter the type of query (0. A, 1. AAAA, 2. CNAME, 3. NS): ", VALID_TYPE)
     converted_flag = type_flag_to_letter(int(dns_type))
 
@@ -28,6 +29,10 @@ while 1:
 
         received_answer = modifiedMessage.decode()
         received_answer = json.loads(received_answer)
+
+        if received_answer["name"] == "error":
+            print(f"Client: The local DNS server was unable to answer the query for hostname {host_name}")
+            continue
 
         if received_answer["transaction_id"] != transaction_id:
             print("Transaction ID does not match.")

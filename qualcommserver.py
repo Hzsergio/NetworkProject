@@ -26,7 +26,9 @@ while 1:
 
     found = df[(df["Name"] == ans_name) & (df["Type"] == ans_type)]
     if found.empty:
-        print("That is not a valid request")
+        print(f'Qualcomm Server: Unable to answer query for host name {ans_name}')
+        error_message = create_error_message(ans_transaction_id)
+        serverSocket.sendto(error_message.encode(), clientAddress)
 
     else:
         return_value = found["Value"].iloc[0]

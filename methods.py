@@ -6,8 +6,10 @@ import pandas as pd
 #
 
 VALID_TYPE = ["0", "1", "2", "3"]
-VALID_DOMAIN = ['www.csusm.edu', "cc.csusm.edu", "cc1.csusm.edu", "cc1.csusm.edu", "my.csusm.edu", "qualcomm.com",
-                "viasat.com", "www.viasat.com", "www.qualcomm.com", "qtiack12.qti.qualcomm.com"]
+
+
+# VALID_DOMAIN = ['www.csusm.edu', "cc.csusm.edu", "cc1.csusm.edu", "cc1.csusm.edu", "my.csusm.edu", "qualcomm.com",
+#                 "viasat.com", "www.viasat.com", "www.qualcomm.com", "qtiack12.qti.qualcomm.com"]
 
 
 class DNSMessage:
@@ -81,3 +83,9 @@ def get_valid_input(prompt, valid_options):
                 print("Invalid input. Try again.")
         except ValueError:
             print("Invalid input. Try again.")
+
+
+def create_error_message(t_id):
+    error = create_dns_request("error", 0, t_id)
+    error = error.to_json()
+    return error

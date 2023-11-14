@@ -17,8 +17,6 @@ data = {'Name': ["www.csusm.edu", "cc.csusm.edu", "cc1.csusm.edu", "cc1.csusm.ed
         'Static': ["1", "1", "1", "1", "1", "1", "1"]}
 
 local_server_rr_table = pd.DataFrame(data, index=range(1, 8))
-print(local_server_rr_table)
-# print("")
 
 
 # Set up connection for the Qualcomm server, send request, receive data
@@ -50,7 +48,7 @@ while 1:
     message, clientAddress = serverSocket.recvfrom(2048)
     modifiedMessage = message.decode()
     received_query = json.loads(modifiedMessage)
-
+    print(received_query)
     if received_query["transaction_id"] == "admin":
         response_to_admin = local_server_rr_table.to_dict()
         response_to_admin = json.dumps(response_to_admin)
@@ -62,7 +60,8 @@ while 1:
     ans_type = int(received_query["type_flags"])
     ans_transaction_id = received_query["transaction_id"]
     converted_flag = type_flag_to_letter(ans_type)
-    print(f"Local DNS Server: The client with IP address {clientAddress} sent an {converted_flag} request for hostname {ans_name}")
+    print(f"\nLocal DNS Server: The client with IP address {clientAddress} sent an {converted_flag} request for "
+          f"hostname {ans_name}")
 
     # Check if the requested entry is in the rr table
     found = local_server_rr_table[
@@ -73,7 +72,8 @@ while 1:
         print(f"Local DNS Server: An {converted_flag} record for hostname {ans_name} was not found.")
         # Qualcomm request
         if "qualcomm" in ans_name:
-            print(f"Local DNS Server: Sending an {converted_flag} request to the Qualcomm DNS Server for the hostname {ans_name}")
+            print(
+                f"Local DNS Server: Sending an {converted_flag} request to the Qualcomm DNS Server for the hostname {ans_name}")
             response = request_qualcomm_server(ans_name, converted_flag, local_transaction_id)
             new_entry = json.loads(response)
 
@@ -82,13 +82,16 @@ while 1:
             local_transaction_id += 1
 
             new_entry["transaction_id"] = ans_transaction_id
-            add_to_rr_table(new_entry, local_server_rr_table)
+            if new_entry['name'] != "error":
+                add_to_rr_table(new_entry, local_server_rr_table)
             host_return_message = json.dumps(new_entry)
             serverSocket.sendto(host_return_message.encode(), clientAddress)
             print(local_server_rr_table)
+
         # Viasat Request
         elif "viasat" in ans_name:
-            print(f"Local DNS Server: Sending an {converted_flag} request to the Viasat DNS Server for the hostname {ans_name}")
+            print(
+                f"Local DNS Server: Sending an {converted_flag} request to the Viasat DNS Server for the hostname {ans_name}")
             response = request_viasat_server(ans_name, converted_flag, local_transaction_id)
             new_entry = json.loads(response)
 
@@ -97,21 +100,32 @@ while 1:
             local_transaction_id += 1
 
             new_entry["transaction_id"] = ans_transaction_id
-            add_to_rr_table(new_entry, local_server_rr_table)
+            if new_entry['name'] != "error":
+                add_to_rr_table(new_entry, local_server_rr_table)
             host_return_message = json.dumps(new_entry)
             serverSocket.sendto(host_return_message.encode(), clientAddress)
+
             print(local_server_rr_table)
+        else:
+            print(f'Local DNS Server: Unable to answer query for host name {ans_name}')
+            error_message = create_error_message(ans_transaction_id)
+            serverSocket.sendto(error_message.encode(), clientAddress)
+
     # Domain found in local RR table
-    else:
+    elif not found.empty:
         print(f"Local DNS Server: The {converted_flag} record for the hostname {ans_name} was found in the local RR "
               f"table.")
+
+        matching_row = found.iloc[0]
+        if matching_row["Static"] == 0:
+            local_server_rr_table.loc[local_server_rr_table["Name"] == ans_name, "TTL"] = round(time.time() + 60)
 
         return_value = found["Value"].iloc[0]
         response = DNSMessage(transaction_id=ans_transaction_id, qr=1, type_flags=converted_flag,
                               name_length=len(ans_name),
                               value_length=len(return_value),
                               name=ans_name, value=return_value)
-        # print(response)
+
         print(local_server_rr_table)
         response_json = response.to_json()
         serverSocket.sendto(response_json.encode(), clientAddress)
