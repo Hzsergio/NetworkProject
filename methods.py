@@ -8,10 +8,6 @@ import pandas as pd
 VALID_TYPE = ["0", "1", "2", "3"]
 
 
-# VALID_DOMAIN = ['www.csusm.edu', "cc.csusm.edu", "cc1.csusm.edu", "cc1.csusm.edu", "my.csusm.edu", "qualcomm.com",
-#                 "viasat.com", "www.viasat.com", "www.qualcomm.com", "qtiack12.qti.qualcomm.com"]
-
-
 class DNSMessage:
     def __init__(self, transaction_id, qr, type_flags, name_length, value_length, name, value):
         self.transaction_id = transaction_id
