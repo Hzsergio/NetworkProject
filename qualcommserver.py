@@ -12,8 +12,8 @@ data = {'Name': ["www.qualcomm.com", "qtiack12.qti.qualcomm.com"],
         'Value': ["104.86.224.205", "129.46.100.21"],
         'TTL': ["", ""],
         'Static': ["1", "1"]}
-df = pd.DataFrame(data, index=range(1, 3))
-print(df)
+qualcomm_rr_table = pd.DataFrame(data, index=range(1, 3))
+print(qualcomm_rr_table)
 while 1:
     message, clientAddress = serverSocket.recvfrom(2048)
     modifiedMessage = message.decode()
@@ -24,12 +24,13 @@ while 1:
     ans_transaction_id = received_query["transaction_id"]
     print(f"Qualcomm Server: The client with IP address {clientAddress} sent an {ans_type} request for hostname {ans_name}")
 
-    found = df[(df["Name"] == ans_name) & (df["Type"] == ans_type)]
+    found = qualcomm_rr_table[(qualcomm_rr_table["Name"] == ans_name) & (qualcomm_rr_table["Type"] == ans_type)]
+    # If the host name is not found an error message will be sent to the client
     if found.empty:
         print(f'Qualcomm Server: Unable to answer query for host name {ans_name}')
         error_message = create_error_message(ans_transaction_id)
         serverSocket.sendto(error_message.encode(), clientAddress)
-
+    # Return value
     else:
         return_value = found["Value"].iloc[0]
         response = DNSMessage(transaction_id=ans_transaction_id, qr=1, type_flags=ans_type, name_length=len(ans_name),

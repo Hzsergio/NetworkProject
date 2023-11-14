@@ -21,21 +21,23 @@ while 1:
     found = client_rr_table[(client_rr_table['Name'] == host_name) & (client_rr_table['Type'] == converted_flag)]
 
     if found.empty:
+        # Creating a dns message
         query = create_dns_request(host_name, dns_type, transaction_id)
         json_query = query.to_json()
-
+        # Sending message
         clientSocket.sendto(json_query.encode(), (serverName, serverPort))
         modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
 
         received_answer = modifiedMessage.decode()
         received_answer = json.loads(received_answer)
-
+        # Checking if the received message is an error
         if received_answer["name"] == "error":
             print(f"\nClient: The local DNS server was unable to answer the query for hostname {host_name}")
             continue
-
+        # Checking that transaction IDs match
         if received_answer["transaction_id"] != transaction_id:
             print("Transaction ID does not match.")
+        # Adding the received message to the RR table
         else:
             transaction_id += 1
             add_to_rr_table(received_answer, client_rr_table)
@@ -43,7 +45,7 @@ while 1:
                 (client_rr_table['Name'] == host_name) & (client_rr_table['Type'] == converted_flag)]
             print(f"Client: Record received for hostname {host_name} from the local DNS server.")
             print(f"Client: The value for hostname {host_name} is " + value["Value"].iloc[0])
-
+    # Data found in the Client RR table - No requests sent
     else:
         print(f"Client: Record for hostname {host_name} located in client RR table.")
         print(f"Client: The value for hostname {host_name} is " + found["Value"].iloc[0])
@@ -52,6 +54,7 @@ while 1:
     print("\nClient RR Table")
     print(client_rr_table)
 
+    # Asking the user if they want to continue
     if input("Make another request? (Y/N): ").lower() == "n":
         clientSocket.close()
         break
